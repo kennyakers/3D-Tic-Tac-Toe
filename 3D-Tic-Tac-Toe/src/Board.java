@@ -42,31 +42,25 @@ public class Board {
             }
         }
 
-        // Single plane: diagonal bottom left to top right
+        // Single plane: diagonals
         for (int level = 0; level < this.board.length; level++) {
-            Goal goal = new Goal();
-            for (int row = 0; row < this.board[0].length; row++) {
-                Coordinate point = new Coordinate(row, row, level);
-                goal.set(row, point);
+            Goal goal1 = new Goal();
+            Goal goal2 = new Goal();
+            for (int i = 0; i < this.board[0].length; i++) {
+                Coordinate point1 = new Coordinate(i, i, level);
+                Coordinate point2 = new Coordinate(this.board[0][0].length - i, i, level);
+                goal1.set(i, point1);
+                goal2.set(i, point2);
             }
-            list.add(goal);
-        }
-
-        // Single plane: diagonal bottom right to top left
-        for (int level = 0; level < this.board.length; level++) {
-            Goal goal = new Goal();
-            for (int row = 0; row < this.board[0].length; row++) {
-                Coordinate point = new Coordinate(3 - row, row, level);
-                goal.set(row, point);
-            }
-            list.add(goal);
+            list.add(goal1);
+            list.add(goal2);
         }
 
         // Multi-plane: vertical columns
-        for (int row = 0; row < this.board.length; row++) {
-            for (int column = 0; column < this.board[0].length; column++) {
+        for (int row = 0; row < this.board[0].length; row++) {
+            for (int column = 0; column < this.board[0][0].length; column++) {
                 Goal goal = new Goal();
-                for (int level = 0; level < this.board[0][0].length; level++) {
+                for (int level = 0; level < this.board.length; level++) {
                     Coordinate point = new Coordinate(column, row, level);
                     goal.set(level, point);
                 }
@@ -74,10 +68,50 @@ public class Board {
             }
         }
 
-        // Multi-plane: side diagonal
-        
+        // Multi-plane: side to side diagonal
+        for (int row = 0; row < this.board[0].length; row++) {
+            Goal goal1 = new Goal();
+            Goal goal2 = new Goal();
+            for (int i = 0; i < this.board.length; i++) {
+                Coordinate point1 = new Coordinate(i, row, i);
+                Coordinate point2 = new Coordinate(this.board[0][0].length - i, row, i);
+                goal1.set(i, point1);
+                goal2.set(i, point2);
+            }
+            list.add(goal1);
+            list.add(goal2);
+        }
 
-        // Multi-plane: center diagonal 
+        // Multi-plane: front to back diagonal
+        for (int column = 0; column < this.board[0].length; column++) {
+            Goal goal1 = new Goal();
+            Goal goal2 = new Goal();
+            for (int i = 0; i < this.board.length; i++) {
+                Coordinate point1 = new Coordinate(column, i, i);
+                Coordinate point2 = new Coordinate(column, this.board[0][0].length - i, i);
+                goal1.set(i, point1);
+                goal2.set(i, point2);
+            }
+            list.add(goal1);
+            list.add(goal2);
+        }
+
+        // Multi-plane: corner to corner diagonal 
+        Goal goal1 = new Goal();
+        Goal goal2 = new Goal();
+        Goal goal3 = new Goal();
+        Goal goal4 = new Goal();
+        for (int i = 0; i < this.board.length; i++) {
+            goal1.set(i, new Coordinate(i, i, i));
+            goal2.set(i, new Coordinate(this.board[0][0].length - i, i, i));
+            goal3.set(i, new Coordinate(this.board[0][0].length - i, this.board[0][0].length - i, i));
+            goal4.set(i, new Coordinate(i, this.board[0][0].length - i, i));
+        }
+        list.add(goal1);
+        list.add(goal2);
+        list.add(goal3);
+        list.add(goal4);
+
         return list;
     }
 

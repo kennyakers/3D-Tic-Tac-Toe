@@ -4,16 +4,30 @@ import java.util.ArrayList;
 public class Board {
 
     private int[][][] board;
+    private int playerNext = 1;
+    private int turnCount = 0;
 
-    public ArrayList<Goal> goalStates;
+    public boolean DEBUG;
 
-    public Board() {
-        this.board = new int[4][4][4];
-        this.goalStates = this.generateGoalStates();
+    public static ArrayList<Goal> goalStates;
+    private static ArrayList<Coordinate> player1Pieces;
+    private static ArrayList<Coordinate> player2Pieces;
+
+    // Parameters
+    private final double POWER_FACTOR_SCALAR = 10.0;
+    private final double BLOCKING_FACTOR_SCALAR = 1.0;
+    private final double OPPORTUNITY_FACTOR_SCALAR = 1.0;
+
+    public Board(boolean debug) {
+        this(new int[4][4][4], debug);
     }
 
-    public Board(int[][][] inputBoard) {
+    public Board(int[][][] inputBoard, boolean debug) {
         this.board = inputBoard;
+        this.DEBUG = debug;
+        goalStates = this.generateGoalStates();
+        player1Pieces = new ArrayList<>();
+        player2Pieces = new ArrayList<>();
     }
 
     private ArrayList<Goal> generateGoalStates() {
@@ -48,7 +62,7 @@ public class Board {
             Goal goal2 = new Goal();
             for (int i = 0; i < this.board[0].length; i++) {
                 Coordinate point1 = new Coordinate(i, i, level);
-                Coordinate point2 = new Coordinate(this.board[0][0].length - i, i, level);
+                Coordinate point2 = new Coordinate(this.board[0][0].length - 1 - i, i, level);
                 goal1.set(i, point1);
                 goal2.set(i, point2);
             }
@@ -74,7 +88,7 @@ public class Board {
             Goal goal2 = new Goal();
             for (int i = 0; i < this.board.length; i++) {
                 Coordinate point1 = new Coordinate(i, row, i);
-                Coordinate point2 = new Coordinate(this.board[0][0].length - i, row, i);
+                Coordinate point2 = new Coordinate(this.board[0][0].length - 1 - i, row, i);
                 goal1.set(i, point1);
                 goal2.set(i, point2);
             }
@@ -88,7 +102,7 @@ public class Board {
             Goal goal2 = new Goal();
             for (int i = 0; i < this.board.length; i++) {
                 Coordinate point1 = new Coordinate(column, i, i);
-                Coordinate point2 = new Coordinate(column, this.board[0][0].length - i, i);
+                Coordinate point2 = new Coordinate(column, this.board[0][0].length - 1 - i, i);
                 goal1.set(i, point1);
                 goal2.set(i, point2);
             }
@@ -103,9 +117,9 @@ public class Board {
         Goal goal4 = new Goal();
         for (int i = 0; i < this.board.length; i++) {
             goal1.set(i, new Coordinate(i, i, i));
-            goal2.set(i, new Coordinate(this.board[0][0].length - i, i, i));
-            goal3.set(i, new Coordinate(this.board[0][0].length - i, this.board[0][0].length - i, i));
-            goal4.set(i, new Coordinate(i, this.board[0][0].length - i, i));
+            goal2.set(i, new Coordinate(this.board[0][0].length - 1 - i, i, i));
+            goal3.set(i, new Coordinate(this.board[0][0].length - 1 - i, this.board[0][0].length - 1 - i, i));
+            goal4.set(i, new Coordinate(i, this.board[0][0].length - 1 - i, i));
         }
         list.add(goal1);
         list.add(goal2);
@@ -115,40 +129,38 @@ public class Board {
         return list;
     }
 
-    private int playerNext = 1;
-    private int turnCount = 1;
-
-    private boolean debug = true;
-
     public int turn() {
-        return playerNext;
+        return this.playerNext;
     }
 
     public boolean move(int x, int y, int z) {
-        int opponent;
-        if (playerNext == 1) {
-            opponent = 2;
-        } else {
-            opponent = 1;
+        int opponent = this.playerNext == 1 ? 2 : 1;
+
+        if (DEBUG) {
+            System.out.println("\tMove request #" + (this.turnCount + 1) + " by player " + this.playerNext + " for coordinates " + x + "," + y + "," + z);
         }
 
-        if (debug) {
-            System.out.println("Move request #" + turnCount + " for coordinates" + x + "," + y + "," + z + " ,playerNext being " + playerNext + " opponent being " + opponent);
-        }
-
-        if (board[x][y][z] == opponent) { //Spot already filled
-            if (debug) {
-                System.out.println("    Move request rejected, opponent occupies request");
+        if (this.board[x][y][z] == opponent) { // Spot already filled
+            if (DEBUG) {
+                System.out.println("\tMove request rejected, opponent occupies request");
             }
             return false;
-        } else {
-            if (debug) {
-                System.out.println("    Move request allowed, nextPlayer is now opponent");
-            }
-
         }
-        turnCount++;
-        playerNext = opponent;
+        if (DEBUG) {
+            System.out.println("\tMove request allowed\n");
+        }
+        Coordinate move = new Coordinate(x, y, z);
+
+        if (this.playerNext == 1) {
+            player1Pieces.add(move);
+        } else {
+            player2Pieces.add(move);
+        }
+
+        this.board[x][y][z] = this.playerNext;
+        this.turnCount++;
+        this.playerNext = opponent;
+
         return true;
     }
 
@@ -163,7 +175,6 @@ public class Board {
                 //If this goalState doesn't allign, break out of the loop
                 if (this.board[x][y][z] != playerID) {
                     match = false;
-                    continue;
                 }
             }
             if (match == true) {
@@ -173,59 +184,124 @@ public class Board {
         return false;
     }
 
+    // TO ADD:
+    // Opportunity and blocking counts
+    //      - Helper method to return all the possible lines from a point.
     public int evaluationFunction(int playerID) {
-        ArrayList<Coordinate> coordinates = new ArrayList();
-        //Generates all occupied positions by playerID
-        for (int column = 0; column < board.length; column++) {
-            for (int row = 0; row < board[column].length; row++) {
-                for (int level = 0; level < board[column][row].length; level++) {
-                    if (board[column][row][level] == playerID) {
-                        coordinates.add(new Coordinate(column, row, level));
-                    }
-                }
-            }
+        int moveCount = this.turnCount / 2;
+        if (this.turnCount == 1) {
+            moveCount = 1;
+        }
+        int opponent = playerID == 1 ? 2 : 1;
+
+        ArrayList<Coordinate> coordinates;
+        if (playerID == 1) {
+            coordinates = player1Pieces;
+        } else {
+            coordinates = player2Pieces;
         }
 
         //Power positions
         int powerCount = 0;
-        for (Coordinate c : coordinates) {
-            if (c.level == 0 || c.level == 3) { //Top or bottom
-                if (c.row == 0 || c.row == 3) { //Left or right
-                    if (c.column == 0 || c.column == 3) { //Front or back
+        for (Coordinate point : coordinates) {
+            if (point.level == 0 || point.level == this.board.length - 1) { //Top or bottom
+                if (point.row == 0 || point.row == this.board.length - 1) { //Left or right
+                    if (point.column == 0 || point.column == this.board.length - 1) { //Front or back
                         powerCount++;
                     }
                 }
             }
 
-            if (c.level == 1 || c.level == 2) { //Two middle
-                if (c.row == 1 || c.row == 2) { //Two middle
-                    if (c.column == 1 || c.column == 2) { //Two middle
+            if (point.level == 1 || point.level == 2) { //Two middle
+                if (point.row == 1 || point.row == 2) { //Two middle
+                    if (point.column == 1 || point.column == 2) { //Two middle
                         powerCount++;
                     }
                 }
             }
         }
-        float powerFactor = 1 / turnCount;
-        float powerPosition = powerCount * powerFactor;
 
-        //Distance to goalStates
-        int netDistance = 0;
-        for (Goal g : goalStates) {
-            for (Coordinate c : g.points) {
-                int x = c.column;
-                int y = c.row;
-                int z = c.level;
+        double powerFactor = ((double) this.POWER_FACTOR_SCALAR) / ((double) moveCount);
+        double powerPosition = powerCount * powerFactor;
 
-                if (board[x][y][z] != playerID) {
-                    netDistance++;
+        if (this.DEBUG) {
+            System.out.println("PLAYER " + playerID + " STATS:");
+            System.out.println("\tmoveCount: " + moveCount);
+            System.out.println("\tpowerCount: " + powerCount);
+            System.out.println("\tpowerFactor: " + powerFactor);
+            System.out.println("\tpowerPosition: " + powerPosition);
+        }
+
+        // Distance to goalStates, blockingFactor, and opportunityFactor
+        int totalFilled = 0;
+        double blockingFactor = 0.0;
+        double opportunityFactor = 0.0;
+        for (Goal goalState : goalStates) {
+            int sum = 0;
+            boolean opponentOccupies = false;
+            int numOpponentsPieces = this.numPlayersPiecesInLine(goalState, opponent);
+            int numCurrentPlayersPieces = this.numPlayersPiecesInLine(goalState, playerID);
+
+            // More positive means more blocking potential in this line.
+            blockingFactor += (this.BLOCKING_FACTOR_SCALAR * (numOpponentsPieces - numCurrentPlayersPieces));
+
+            // If this goal line has an opponent piece in it, it's useless to us now (opportunityFactor = 0).
+            // Otherwise, the more of our pieces in this line, the higher the opportunityFactor.
+            opportunityFactor += numOpponentsPieces > 0 ? 0 : (this.OPPORTUNITY_FACTOR_SCALAR * numCurrentPlayersPieces);
+
+            for (Coordinate point : goalState.points) {
+                int x = point.column;
+                int y = point.row;
+                int z = point.level;
+
+                if (this.board[x][y][z] == playerID) { // If the current player occupies this spot.
+                    sum++;
+                } else if (this.board[x][y][z] == opponent) { // If the opponent occupies this spot.
+                    opponentOccupies = true;
                 }
             }
+            if (!opponentOccupies) {
+                totalFilled += sum;
+            }
         }
-        float goalFactor = turnCount;
-        float distance = netDistance * goalFactor;
 
-        return (int) (powerPosition + distance);
+        double goalFactor = moveCount;
+        double distance = totalFilled * goalFactor;
+        if (DEBUG) {
+            System.out.println("\tgoalFactor: " + goalFactor);
+            System.out.println("\topponent: " + opponent);
+            System.out.println("\ttotalFilled: " + totalFilled);
+            System.out.println("\tdistance: " + distance);
+            System.out.println("\tblockingFactor: " + blockingFactor);
+            System.out.println("\topportunityFactor: " + opportunityFactor);
+        }
 
+        return (int) (powerPosition + distance + blockingFactor + opportunityFactor);
+
+    }
+
+    private ArrayList<Goal> goalsFromPoint(Coordinate point) {
+        ArrayList<Goal> subsetOfGoals = new ArrayList<>();
+        for (Goal goal : goalStates) {
+            if (goal.contains(point)) {
+                subsetOfGoals.add(goal);
+            }
+        }
+        return subsetOfGoals;
+    }
+
+    private int numPlayersPiecesInLine(Goal line, int playerID) {
+        int count = 0;
+        for (Coordinate point : line.points) {
+            if (this.getPlayerAt(point) == playerID) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private int getPlayerAt(Coordinate point) {
+        return this.board[point.level][point.row][point.column];
     }
 
     public void print() {
@@ -233,12 +309,12 @@ public class Board {
             System.out.println("Level " + level);
             for (int row = 0; row < this.board.length; row++) {
                 for (int column = 0; column < this.board[0].length; column++) {
-                    System.out.print(this.board[level][row][column]);
+                    System.out.print("\t" + this.board[level][row][column]);
                 }
-                System.out.println();
+                System.out.println("");
             }
-
         }
+        System.out.println("");
     }
 
     public class Goal {
@@ -257,6 +333,19 @@ public class Board {
             for (Coordinate point : points) {
                 point.print();
             }
+        }
+
+        public boolean contains(Coordinate point) {
+            return this.contains(point.column, point.row, point.level);
+        }
+
+        public boolean contains(int x, int y, int z) {
+            for (Coordinate point : this.points) {
+                if (point.column == x && point.row == y && point.level == z) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

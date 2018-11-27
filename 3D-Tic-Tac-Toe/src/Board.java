@@ -12,6 +12,7 @@ public class Board {
     public static ArrayList<Goal> goalStates;
     private static ArrayList<Coordinate> player1Pieces;
     private static ArrayList<Coordinate> player2Pieces;
+    private static ArrayList<Coordinate> openSpots;
 
     // Parameters
     private final double POWER_FACTOR_SCALAR = 10.0;
@@ -26,6 +27,7 @@ public class Board {
         this.board = inputBoard;
         this.DEBUG = debug;
         goalStates = this.generateGoalStates();
+        openSpots = this.generateOpenSpots();
         player1Pieces = new ArrayList<>();
         player2Pieces = new ArrayList<>();
     }
@@ -133,7 +135,11 @@ public class Board {
         return this.playerNext;
     }
 
-    public boolean move(int x, int y, int z) {
+    public Board move(Coordinate point) {
+        return this.move(point.column, point.row, point.level);
+    }
+
+    public Board move(int x, int y, int z) {
         int opponent = this.playerNext == 1 ? 2 : 1;
 
         if (DEBUG) {
@@ -144,7 +150,7 @@ public class Board {
             if (DEBUG) {
                 System.out.println("\tMove request rejected, opponent occupies request");
             }
-            return false;
+            return null;
         }
         if (DEBUG) {
             System.out.println("\tMove request allowed\n");
@@ -156,25 +162,35 @@ public class Board {
         } else {
             player2Pieces.add(move);
         }
+        openSpots.remove(move); // That spot now has a piece in it, so we remove it from the list of open spots.
 
         this.board[x][y][z] = this.playerNext;
         this.turnCount++;
         this.playerNext = opponent;
 
-        return true;
+        return this.copyBoard();
     }
 
-    public boolean isGoalState(int playerID) {
+    public boolean isGoalState() {
+        int player = -1;
         for (Goal g : goalStates) {
             boolean match = true;
+            if (this.containsPlayer(g, 1)) {
+                player = 1;
+            } else if (this.containsPlayer(g, 2)) {
+                player = 2;
+            } else {
+                continue; // Not a goal state if both players are in this line, or no players are in this line
+            }
             for (Coordinate c : g.points) {
                 int x = c.column;
                 int y = c.row;
                 int z = c.level;
 
-                //If this goalState doesn't allign, break out of the loop
-                if (this.board[x][y][z] != playerID) {
+                // If this goalState doesn't allign, break out of the loop
+                if (this.board[x][y][z] != player) {
                     match = false;
+                    break;
                 }
             }
             if (match == true) {
@@ -184,9 +200,10 @@ public class Board {
         return false;
     }
 
-    // TO ADD:
-    // Opportunity and blocking counts
-    //      - Helper method to return all the possible lines from a point.
+    /*
+    Status:
+        - blockingFactor and opportunityFactor not working properly 
+     */
     public int evaluationFunction(int playerID) {
         int moveCount = this.turnCount / 2;
         if (this.turnCount == 1) {
@@ -224,14 +241,6 @@ public class Board {
         double powerFactor = ((double) this.POWER_FACTOR_SCALAR) / ((double) moveCount);
         double powerPosition = powerCount * powerFactor;
 
-        if (this.DEBUG) {
-            System.out.println("PLAYER " + playerID + " STATS:");
-            System.out.println("\tmoveCount: " + moveCount);
-            System.out.println("\tpowerCount: " + powerCount);
-            System.out.println("\tpowerFactor: " + powerFactor);
-            System.out.println("\tpowerPosition: " + powerPosition);
-        }
-
         // Distance to goalStates, blockingFactor, and opportunityFactor
         int totalFilled = 0;
         double blockingFactor = 0.0;
@@ -267,7 +276,13 @@ public class Board {
 
         double goalFactor = moveCount;
         double distance = totalFilled * goalFactor;
+
         if (DEBUG) {
+            System.out.println("PLAYER " + playerID + " STATS:");
+            System.out.println("\tmoveCount: " + moveCount);
+            System.out.println("\tpowerCount: " + powerCount);
+            System.out.println("\tpowerFactor: " + powerFactor);
+            System.out.println("\tpowerPosition: " + powerPosition);
             System.out.println("\tgoalFactor: " + goalFactor);
             System.out.println("\topponent: " + opponent);
             System.out.println("\ttotalFilled: " + totalFilled);
@@ -290,6 +305,24 @@ public class Board {
         return subsetOfGoals;
     }
 
+    public ArrayList<Coordinate> getOpenSpots() {
+        return openSpots;
+    }
+
+    private ArrayList<Coordinate> generateOpenSpots() {
+        ArrayList<Coordinate> openPoints = new ArrayList<>();
+        for (int level = 0; level < this.board.length; level++) {
+            for (int row = 0; row < this.board[0].length; row++) {
+                for (int column = 0; column < this.board[0][0].length; column++) {
+                    // This method is called from the constructor, so all the points will be blank.
+                    // Thus, we don't need a check here.
+                    openPoints.add(new Coordinate(column, row, level));
+                }
+            }
+        }
+        return openPoints;
+    }
+
     private int numPlayersPiecesInLine(Goal line, int playerID) {
         int count = 0;
         for (Coordinate point : line.points) {
@@ -302,6 +335,15 @@ public class Board {
 
     private int getPlayerAt(Coordinate point) {
         return this.board[point.level][point.row][point.column];
+    }
+
+    private boolean containsPlayer(Goal goal, int player) { // Does this goal state contain this player?
+        for (Coordinate point : goal.points) {
+            if (this.getPlayerAt(point) == player) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void print() {
@@ -317,52 +359,37 @@ public class Board {
         System.out.println("");
     }
 
-    public class Goal {
-
-        public Coordinate[] points;
-
-        public Goal() {
-            this.points = new Coordinate[4];
-        }
-
-        public void set(int index, Coordinate point) {
-            this.points[index] = point;
-        }
-
-        public void print() {
-            for (Coordinate point : points) {
-                point.print();
-            }
-        }
-
-        public boolean contains(Coordinate point) {
-            return this.contains(point.column, point.row, point.level);
-        }
-
-        public boolean contains(int x, int y, int z) {
-            for (Coordinate point : this.points) {
-                if (point.column == x && point.row == y && point.level == z) {
-                    return true;
+    public Board copyBoard() {
+        int dimension = this.board.length;
+        int[][][] newBoard = new int[dimension][dimension][dimension];
+        for (int level = 0; level < this.board.length; level++) {
+            for (int row = 0; row < this.board[0].length; row++) {
+                for (int column = 0; column < this.board[0][0].length; column++) {
+                    newBoard[level][row][column] = this.board[level][row][column];
                 }
             }
-            return false;
         }
+        return new Board(newBoard, this.DEBUG);
     }
 
-    private class Coordinate {
-
-        public int level;
-        public int row;
-        public int column;
-
-        public Coordinate(int column, int row, int level) {
-            this.level = level;
-            this.row = row;
-            this.column = column;
-        }
-
-        public void print() {
-            System.out.println("(" + this.column + ", " + this.row + ", " + this.level + ")");
-        }
+    public int[][][] getBoard() {
+        return board;
     }
+
+    public int getTurnCount() {
+        return turnCount;
+    }
+
+    public static ArrayList<Goal> getGoalStates() {
+        return goalStates;
+    }
+
+    public static ArrayList<Coordinate> getPlayer1Pieces() {
+        return player1Pieces;
+    }
+
+    public static ArrayList<Coordinate> getPlayer2Pieces() {
+        return player2Pieces;
+    }
+
 }

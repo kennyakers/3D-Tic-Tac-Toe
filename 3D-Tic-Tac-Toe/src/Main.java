@@ -5,10 +5,19 @@ public class Main {
 
     public static Board board;
     
+    private final static boolean DEBUG = true;
+    
     public static void main(String[] args) {
 
-        GUI gui = new GUI(4, true);
-        board = new Board(true);
+        GUI gui = new GUI(4, DEBUG);
+        board = new Board(DEBUG);
+        
+        while (!board.isGoalState() && board.getOpenSpots().size() > 0) {
+            AI ai = new AI();
+            if (!gui.buttons[0][0].isEnabled()) { // If the buttons are disabled, then it is the AI's turn.
+                board = move(ai.nextMove(board, 2));
+            }
+        }
         
         /*
         Board board = new Board();
@@ -55,9 +64,12 @@ public class Main {
         }
          */
     }
+    public static Board move(Coordinate point) {
+        return move(point.column, point.row, point.level);
+    }
     
-    public static void move(int column, int row, int level) {
-        board.move(column, row, level);
+    public static Board move(int column, int row, int level) {
+        return board.move(column, row, level);
     }
 
     private static String getArgument(String line, int index) {

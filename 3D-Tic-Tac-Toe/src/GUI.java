@@ -14,7 +14,7 @@ import javax.swing.border.TitledBorder;
  */
 public class GUI extends JPanel {
 
-    private JButton[][] buttons;
+    public JButton[][] buttons;
     private JPanel[] levels;
     private JFrame frame;
     private JPanel panel;
@@ -35,7 +35,7 @@ public class GUI extends JPanel {
 
         for (int i = 0; i < this.levels.length; i++) {
             this.buttons[i] = new JButton[16];
-            for (int j = 0; j < this.buttons[i].length; j++) {
+            for (int j = 0; j < this.buttons[0].length; j++) {
                 this.buttons[i][j] = new JButton("");
                 this.buttons[i][j].addActionListener(new ButtonListener(debug));
                 this.buttons[i][j].putClientProperty("column", j % dimension);
@@ -51,6 +51,14 @@ public class GUI extends JPanel {
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
+    
+    public void setButtonsEnabled(boolean enabled) {
+        for (int i = 0; i < this.levels.length; i++) {
+            for (int j = 0; j < this.buttons[0].length; j++) {
+                this.buttons[i][j].setEnabled(enabled);
+            }
+        }
+    }
 
     private class ButtonListener implements ActionListener {
 
@@ -62,7 +70,6 @@ public class GUI extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-
             JButton buttonClicked = (JButton) e.getSource(); // Get the particular button that was clicked
 
             int column = (Integer) buttonClicked.getClientProperty("column");
@@ -70,22 +77,33 @@ public class GUI extends JPanel {
             int level = (Integer) buttonClicked.getClientProperty("level");
 
             if (debug) {
-                System.out.println("Column: " + column);
-                System.out.println("Row: " + row);
-                System.out.println("Level: " + level);
-                System.out.println("Evaluation Function Player 1: " + Main.board.evaluationFunction(1));
-                System.out.println("Evaluation Function Player 2: " + Main.board.evaluationFunction(2));
+                System.out.println("\tColumn: " + column);
+                System.out.println("\tRow: " + row);
+                System.out.println("\tLevel: " + level);
             }
 
             int currentPlayer = Main.board.turn();
             buttonClicked.setText("" + currentPlayer);
-            Main.move(column, row, level);
-            if (Main.board.isGoalState(currentPlayer)) {
+            Board b = Main.move(column, row, level);
+            if (b == null) {
+                System.out.println("Invalid move. Try another spot.");
+                return;
+            }
+
+            if (debug) {
+                System.out.println("\tEvaluation Function Player 1: " + Main.board.evaluationFunction(1));
+                System.out.println("\tEvaluation Function Player 2: " + Main.board.evaluationFunction(2) + "\n");
+            }
+
+            if (Main.board.isGoalState()) { // If someone has won.
                 JOptionPane.showMessageDialog(null, "Player " + currentPlayer + " Wins");
                 System.exit(1);
             } else {
                 System.out.println("Player to move: " + Main.board.turn());
             }
+            // Since the player just made a move, disable the buttons because it is the AI's turn.
+            // They will be re-enabled after the AI makes a move.
+            GUI.this.setButtonsEnabled(false);
         }
 
     }

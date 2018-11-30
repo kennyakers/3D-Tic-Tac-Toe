@@ -9,6 +9,8 @@ public class AI {
         int beta = Integer.MAX_VALUE;
         UtilMove bestMove = new UtilMove(Integer.MIN_VALUE, null);
         for (Coordinate point : openSpots) {
+            Coordinate start = point;
+            openSpots.remove(point);
             UtilMove currentMove = this.minValue(board, openSpots, alpha, beta, currentPlayer); // We want to maximize the mins for this player. 
             if (currentMove.getUtility() > bestMove.getUtility()) { // If this move is better
                 bestMove = currentMove;
@@ -23,6 +25,8 @@ public class AI {
         }
         Coordinate action = null;
         for (Coordinate move : moves) {
+            Coordinate start = move;
+            moves.remove(move);
             Board tempBoard = boardState.copyBoard();
             int minVal = minValue(tempBoard.move(move), moves, alpha, Integer.MAX_VALUE, currentPlayer).getUtility();
             if (minVal > beta) {
@@ -42,6 +46,8 @@ public class AI {
         }
         Coordinate action = null;
         for (Coordinate move : moves) {
+            Coordinate start = move;
+            moves.remove(move);
             Board tempBoard = boardState.copyBoard();
             int maxVal = maxValue(tempBoard.move(move), moves, Integer.MIN_VALUE, beta, currentPlayer).getUtility();
             if (maxVal < alpha) {

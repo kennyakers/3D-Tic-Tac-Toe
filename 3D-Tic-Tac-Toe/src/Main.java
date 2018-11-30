@@ -4,21 +4,30 @@ import java.io.Console;
 public class Main {
 
     public static Board board;
-    
-    private final static boolean DEBUG = true;
-    
+
+    public final static boolean DEBUG = true;
+    public final static boolean ENABLE_AI = false;
+
     public static void main(String[] args) {
 
-        GUI gui = new GUI(4, DEBUG);
+        //GUI gui = new GUI(4);
         board = new Board(DEBUG);
         
-        while (!board.isGoalState() && board.getOpenSpots().size() > 0) {
-            AI ai = new AI();
-            if (!gui.buttons[0][0].isEnabled()) { // If the buttons are disabled, then it is the AI's turn.
-                board = move(ai.nextMove(board, 2));
-            }
-        }
+        AI ai = new AI();
+        board = move(ai.nextMove(board, 1));
+        board.print();
         
+        
+//        if (ENABLE_AI) {
+//            while (!board.isGoalState() && board.getOpenSpots().size() > 0) {
+//                AI ai = new AI();
+//                if (!gui.buttons[0][0].isEnabled()) { // If the buttons are disabled, then it is the AI's turn.
+//                    board = move(ai.nextMove(board, 2));
+//                    gui.setButtonsEnabled(true);
+//                }
+//            }
+//        }
+
         /*
         Board board = new Board();
         Console console = System.console();
@@ -64,10 +73,11 @@ public class Main {
         }
          */
     }
+
     public static Board move(Coordinate point) {
         return move(point.column, point.row, point.level);
     }
-    
+
     public static Board move(int column, int row, int level) {
         return board.move(column, row, level);
     }

@@ -16,8 +16,12 @@ public class Board {
 
     // Parameters
     private final double POWER_FACTOR_SCALAR = 10.0;
-    private final double BLOCKING_FACTOR_SCALAR = 1.0;
-    private final double OPPORTUNITY_FACTOR_SCALAR = 1.0;
+    //private final double BLOCKING_FACTOR_SCALAR = 1.0;
+    //private final double OPPORTUNITY_FACTOR_SCALAR = 1.0;
+    private final double GOAL_FACTOR_SCALAR = 0.2;
+    private final double SUM_THREE_FACTOR = 100.0;
+    private final double SUM_TWO_FACTOR = 10.0;
+    private final double SUM_ONE_FACTOR = 1.0;
 
     public Board(boolean debug) {
         this(new int[4][4][4], debug);
@@ -243,8 +247,8 @@ public class Board {
 
         // Distance to goalStates, blockingFactor, and opportunityFactor
         int totalFilled = 0;
-        double blockingFactor = 0.0;
-        double opportunityFactor = 0.0;
+        //double blockingFactor = 0.0;
+        //double opportunityFactor = 0.0;
         for (Goal goalState : goalStates) {
             int sum = 0;
             boolean opponentOccupies = false;
@@ -252,12 +256,10 @@ public class Board {
             int numCurrentPlayersPieces = this.numPlayersPiecesInLine(goalState, playerID);
 
             // More positive means more blocking potential in this line.
-            blockingFactor += (this.BLOCKING_FACTOR_SCALAR * (numOpponentsPieces - numCurrentPlayersPieces));
-
+            //blockingFactor += (this.BLOCKING_FACTOR_SCALAR * (numOpponentsPieces - numCurrentPlayersPieces));
             // If this goal line has an opponent piece in it, it's useless to us now (opportunityFactor = 0).
             // Otherwise, the more of our pieces in this line, the higher the opportunityFactor.
-            opportunityFactor += numOpponentsPieces > 0 ? 0 : (this.OPPORTUNITY_FACTOR_SCALAR * numCurrentPlayersPieces);
-
+            // opportunityFactor += numOpponentsPieces > 0 ? 0 : (this.OPPORTUNITY_FACTOR_SCALAR * numCurrentPlayersPieces);
             for (Coordinate point : goalState.points) {
                 int x = point.column;
                 int y = point.row;
@@ -270,12 +272,26 @@ public class Board {
                 }
             }
             if (!opponentOccupies) {
-                totalFilled += sum;
+                switch (sum) {
+                    case 3:
+                        //One away
+                        totalFilled += (sum * SUM_THREE_FACTOR);
+                        break;
+                    case 2:
+                        //TWo away
+                        totalFilled += (sum * SUM_TWO_FACTOR);
+                        break;
+                    case 1:
+                        totalFilled += (sum * SUM_ONE_FACTOR);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
-        double goalFactor = moveCount;
-        double distance = totalFilled * goalFactor;
+        double goalFactor = moveCount * GOAL_FACTOR_SCALAR;
+        double distance = totalFilled * goalFactor; // Distance is the sum of the unfilled spots for all goalstates that this point is a part of.
 
         if (DEBUG) {
             System.out.println("PLAYER " + playerID + " STATS:");
@@ -287,11 +303,11 @@ public class Board {
             System.out.println("\topponent: " + opponent);
             System.out.println("\ttotalFilled: " + totalFilled);
             System.out.println("\tdistance: " + distance);
-            System.out.println("\tblockingFactor: " + blockingFactor);
-            System.out.println("\topportunityFactor: " + opportunityFactor);
+            //System.out.println("\tblockingFactor: " + blockingFactor);
+            //System.out.println("\topportunityFactor: " + opportunityFactor);
         }
 
-        return (int) (powerPosition + distance + blockingFactor + opportunityFactor);
+        return (int) (powerPosition + distance); //blockingFactor + opportunityFactor);
 
     }
 

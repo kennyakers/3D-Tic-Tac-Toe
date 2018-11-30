@@ -19,7 +19,7 @@ public class GUI extends JPanel {
     private JFrame frame;
     private JPanel panel;
 
-    public GUI(int dimension, boolean debug) {
+    public GUI(int dimension) {
         this.frame = new JFrame("3D-Tic-Tac-Toe");
         this.buttons = new JButton[4][16]; // 4 levels, 16 buttons each.
         this.levels = new JPanel[4]; // 4 levels.
@@ -37,7 +37,7 @@ public class GUI extends JPanel {
             this.buttons[i] = new JButton[16];
             for (int j = 0; j < this.buttons[0].length; j++) {
                 this.buttons[i][j] = new JButton("");
-                this.buttons[i][j].addActionListener(new ButtonListener(debug));
+                this.buttons[i][j].addActionListener(new ButtonListener(Main.DEBUG));
                 this.buttons[i][j].putClientProperty("column", j % dimension);
                 this.buttons[i][j].putClientProperty("row", j / dimension);
                 this.buttons[i][j].putClientProperty("level", i);
@@ -51,7 +51,7 @@ public class GUI extends JPanel {
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
-    
+
     public void setButtonsEnabled(boolean enabled) {
         for (int i = 0; i < this.levels.length; i++) {
             for (int j = 0; j < this.buttons[0].length; j++) {
@@ -103,7 +103,9 @@ public class GUI extends JPanel {
             }
             // Since the player just made a move, disable the buttons because it is the AI's turn.
             // They will be re-enabled after the AI makes a move.
-            GUI.this.setButtonsEnabled(false);
+            if (Main.ENABLE_AI) {
+                GUI.this.setButtonsEnabled(false);
+            }
         }
 
     }

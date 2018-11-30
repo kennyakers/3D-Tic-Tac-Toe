@@ -84,7 +84,7 @@ public class GUI extends JPanel {
 
             int currentPlayer = Main.board.turn();
             buttonClicked.setText("" + currentPlayer);
-            Board b = Main.move(column, row, level);
+            Board b = Main.move(column, row, level, currentPlayer);
             if (b == null) {
                 System.out.println("Invalid move. Try another spot.");
                 return;
@@ -95,7 +95,7 @@ public class GUI extends JPanel {
                 System.out.println("\tEvaluation Function Player 2: " + Main.board.evaluationFunction(2) + "\n");
             }
 
-            if (Main.board.isGoalState()) { // If someone has won.
+            if (Main.board.isGoalState(currentPlayer)) { // If someone has won.
                 JOptionPane.showMessageDialog(null, "Player " + currentPlayer + " Wins");
                 System.exit(1);
             } else {

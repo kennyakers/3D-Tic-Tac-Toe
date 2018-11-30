@@ -20,13 +20,18 @@ public class Coordinate {
     }
 
     @Override
-    public int hashCode() {
-        return this.column*100+this.row*10+this.level;
-    }
-    @Override
-    public boolean equals(Object other){
-        Coordinate otherCord = (Coordinate)other;
+    public boolean equals(Object other) {
+        Coordinate otherCord = (Coordinate) other;
         return this.hashCode() == otherCord.hashCode();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 97 * hash + this.level;
+        hash = 97 * hash + this.row;
+        hash = 97 * hash + this.column;
+        return hash;
     }
 
 }

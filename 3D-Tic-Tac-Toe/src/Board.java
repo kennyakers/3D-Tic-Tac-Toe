@@ -24,12 +24,13 @@ public class Board {
     private final double SUM_ONE_FACTOR = 1.0;
 
     public Board(boolean debug) {
-        this(new int[4][4][4], debug);
+        this(new int[4][4][4], debug, 1);
     }
 
-    public Board(int[][][] inputBoard, boolean debug) {
+    public Board(int[][][] inputBoard, boolean debug, int playerNext) {
         this.board = inputBoard;
         this.DEBUG = debug;
+        this.playerNext = playerNext;
         goalStates = this.generateGoalStates();
         openSpots = this.generateOpenSpots();
         player1Pieces = new ArrayList<>();
@@ -139,11 +140,11 @@ public class Board {
         return this.playerNext;
     }
 
-    public Board move(Coordinate point) {
-        return this.move(point.column, point.row, point.level);
+    public Board move(Coordinate point, int player) {
+        return this.move(point.column, point.row, point.level, player);
     }
 
-    public Board move(int x, int y, int z) {
+    public Board move(int x, int y, int z, int player) {
         int opponent = this.playerNext == 1 ? 2 : 1;
 
         if (DEBUG) {
@@ -167,16 +168,39 @@ public class Board {
             player2Pieces.add(move);
         }
         boolean a = openSpots.remove(move); // That spot now has a piece in it, so we remove it from the list of open spots.
-        if(!a){
+        if (!a) {
             System.out.println("fasfaosifdjhasjfkdasiuj");
         }
-        this.board[x][y][z] = this.playerNext;
+        if (a) {
+            //System.out.println("Moved " + move + " correctly ");
+        }
+        this.board[x][y][z] = player;
         this.turnCount++;
         this.playerNext = opponent;
 
         return this.copyBoard();
     }
 
+    public boolean isGoalState(int playerID) {
+        for (Goal g : goalStates) {
+            boolean match = true;
+            for (Coordinate c : g.points) {
+                int x = c.column;
+                int y = c.row;
+                int z = c.level; //If this goalState doesn't allign, break out of the loop 
+                if (this.board[x][y][z] != playerID) {
+                    match = false;
+                    continue;
+                }
+            }
+            if (match == true) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
     public boolean isGoalState() {
         int player = -1;
         for (Goal g : goalStates) {
@@ -205,8 +229,9 @@ public class Board {
         }
         return false;
     }
+     */
 
-    /*
+ /*
     Status:
         - blockingFactor and opportunityFactor not working properly 
      */
@@ -334,7 +359,9 @@ public class Board {
                 for (int column = 0; column < this.board[0][0].length; column++) {
                     // This method is called from the constructor, so all the points will be blank.
                     // Thus, we don't need a check here.
-                    openPoints.add(new Coordinate(column, row, level));
+                    if (board[column][row][level] == 0) {
+                        openPoints.add(new Coordinate(column, row, level));
+                    }
                 }
             }
         }
@@ -374,8 +401,8 @@ public class Board {
                 System.out.println("");
             }
         }
-        System.out.print("Avalilable Moves : " );
-        for(Coordinate move : openSpots){
+        System.out.print("Avalilable Moves : ");
+        for (Coordinate move : openSpots) {
             System.out.print(move.toString() + ", ");
         }
         System.out.println("");
@@ -391,7 +418,7 @@ public class Board {
                 }
             }
         }
-        return new Board(newBoard, this.DEBUG);
+        return new Board(newBoard, this.DEBUG, this.playerNext);
     }
 
     public int[][][] getBoard() {

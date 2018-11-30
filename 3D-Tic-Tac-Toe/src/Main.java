@@ -12,21 +12,12 @@ public class Main {
 
         //GUI gui = new GUI(4);
         board = new Board(DEBUG);
-        
+
         AI ai = new AI();
-        board = move(ai.nextMove(board, 1));
+        board = move(ai.nextMove(board), 2);
+        System.out.println("\n\n\n\n\n\nMOVE\n\n\n\n\n");
         board.print();
-        
-        
-//        if (ENABLE_AI) {
-//            while (!board.isGoalState() && board.getOpenSpots().size() > 0) {
-//                AI ai = new AI();
-//                if (!gui.buttons[0][0].isEnabled()) { // If the buttons are disabled, then it is the AI's turn.
-//                    board = move(ai.nextMove(board, 2));
-//                    gui.setButtonsEnabled(true);
-//                }
-//            }
-//        }
+
 
         /*
         Board board = new Board();
@@ -74,12 +65,12 @@ public class Main {
          */
     }
 
-    public static Board move(Coordinate point) {
-        return move(point.column, point.row, point.level);
+    public static Board move(Coordinate point, int player) {
+        return move(point.column, point.row, point.level, player);
     }
 
-    public static Board move(int column, int row, int level) {
-        return board.move(column, row, level);
+    public static Board move(int column, int row, int level, int player) {
+        return board.move(column, row, level, player);
     }
 
     private static String getArgument(String line, int index) {

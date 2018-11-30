@@ -11,7 +11,7 @@ public class AI {
         for (Coordinate point : openSpots) {
             Coordinate start = point;
             openSpots.remove(point);
-            UtilMove currentMove = this.minValue(board, openSpots, alpha, beta, currentPlayer); // We want to maximize the mins for this player. 
+            UtilMove currentMove = this.minValue(board, alpha, beta, currentPlayer); // We want to maximize the mins for this player. 
             if (currentMove.getUtility() > bestMove.getUtility()) { // If this move is better
                 bestMove = currentMove;
             }
@@ -19,16 +19,17 @@ public class AI {
         return bestMove.getMove();
     }
 
-    private UtilMove maxValue(Board boardState, ArrayList<Coordinate> moves, int alpha, int beta, int currentPlayer) {
+    private UtilMove maxValue(Board boardState, int alpha, int beta, int currentPlayer) {
         if (boardState.isGoalState()) { // If this is a goal state.
             return new UtilMove(boardState.evaluationFunction(currentPlayer), null);
         }
         Coordinate action = null;
-        for (Coordinate move : moves) {
+        ArrayList<Coordinate> openSpots = boardState.getOpenSpots();
+        for (Coordinate move : openSpots) {
             Coordinate start = move;
-            moves.remove(move);
+            openSpots.remove(move);
             Board tempBoard = boardState.copyBoard();
-            int minVal = minValue(tempBoard.move(move), moves, alpha, Integer.MAX_VALUE, currentPlayer).getUtility();
+            int minVal = minValue(tempBoard.move(move), alpha, Integer.MAX_VALUE, currentPlayer).getUtility();
             if (minVal > beta) {
                 return new UtilMove(minVal, move);
             }
@@ -40,16 +41,17 @@ public class AI {
         return new UtilMove(alpha, action);
     }
 
-    private UtilMove minValue(Board boardState, ArrayList<Coordinate> moves, int alpha, int beta, int currentPlayer) {
+    private UtilMove minValue(Board boardState, int alpha, int beta, int currentPlayer) {
         if (boardState.isGoalState()) {
             return new UtilMove(boardState.evaluationFunction(currentPlayer), null);
         }
         Coordinate action = null;
-        for (Coordinate move : moves) {
+        ArrayList<Coordinate> openSpots = boardState.getOpenSpots();
+        for (Coordinate move : openSpots) {
             Coordinate start = move;
-            moves.remove(move);
+            openSpots.remove(move);
             Board tempBoard = boardState.copyBoard();
-            int maxVal = maxValue(tempBoard.move(move), moves, Integer.MIN_VALUE, beta, currentPlayer).getUtility();
+            int maxVal = maxValue(tempBoard.move(move), Integer.MIN_VALUE, beta, currentPlayer).getUtility();
             if (maxVal < alpha) {
                 return new UtilMove(maxVal, move);
             }

@@ -166,8 +166,10 @@ public class Board {
         } else {
             player2Pieces.add(move);
         }
-        openSpots.remove(move); // That spot now has a piece in it, so we remove it from the list of open spots.
-
+        boolean a = openSpots.remove(move); // That spot now has a piece in it, so we remove it from the list of open spots.
+        if(!a){
+            System.out.println("fasfaosifdjhasjfkdasiuj");
+        }
         this.board[x][y][z] = this.playerNext;
         this.turnCount++;
         this.playerNext = opponent;
@@ -371,6 +373,10 @@ public class Board {
                 }
                 System.out.println("");
             }
+        }
+        System.out.print("Avalilable Moves : " );
+        for(Coordinate move : openSpots){
+            System.out.print(move.toString() + ", ");
         }
         System.out.println("");
     }

@@ -15,4 +15,18 @@ public class Coordinate {
         System.out.println("(" + this.column + ", " + this.row + ", " + this.level + ")");
     }
 
+    public String toString() {
+        return ("(" + this.column + ", " + this.row + ", " + this.level + ")");
+    }
+
+    @Override
+    public int hashCode() {
+        return this.column*100+this.row*10+this.level;
+    }
+    @Override
+    public boolean equals(Object other){
+        Coordinate otherCord = (Coordinate)other;
+        return this.hashCode() == otherCord.hashCode();
+    }
+
 }

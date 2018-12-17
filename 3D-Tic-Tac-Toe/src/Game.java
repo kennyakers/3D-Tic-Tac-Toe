@@ -74,6 +74,7 @@ public class Game {
 
         while (board.getOpenSpots().size() > 0 && !board.isGoalState()) {
             if (!ENABLE_GUI) {
+                // Player's turn
                 board.turnCount++;
                 board = playerMove(board, scanner, 1);
                 if (DEBUG) {
@@ -86,12 +87,11 @@ public class Game {
                         System.out.println("Turn count: " + board.turnCount);
                     }
                 }
-
                 if (board.isGoalState()) {
                     System.out.println("Player won!");
                     break;
                 }
-
+                // Player's turn
                 board = aiMove(board, 2);
                 board.turnCount++;
                 if (DEBUG) {

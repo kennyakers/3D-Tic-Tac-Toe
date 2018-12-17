@@ -24,8 +24,10 @@ public class Game {
      * not choosing either of the solutions.
      * 8. Overall, we could turn this in right now, but I want it to be better than last year's.
      */
+    
     private static final int MAX_PLY_DEPTH = 2;
-    private static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
+    private static final boolean ENABLE_GUI = true;
     public static final boolean PRIORITIZE_CORNER_MOVES = false;
     public static final boolean PRIORITIZE_MULTILEVEL_MOVES = false;
     public static final boolean CONSIDER_BLOCKING = false;
@@ -34,8 +36,10 @@ public class Game {
     public static final boolean ENABLE_MOVE_ORDERING = false;
     public static final boolean CONSIDER_POWER_POSITIONS = false;
 
-    private static int aiEval = 0;
-    
+    private static GUI gui;
+    public static Board board;
+    public static boolean isAITurn = false;
+
     public static void main(String[] args) {
         // TESTER FOR SETTING UP BOARD CONFIGS. HAS UNDO CAPABILITY
 //        Scanner scanner = new Scanner(System.in);
@@ -60,80 +64,105 @@ public class Game {
 //        }
 
         Scanner scanner = new Scanner(System.in);
-        Board board = new Board();
+        if (ENABLE_GUI) {
+            gui = new GUI(4);
+        } else {
+            System.out.println("Welcome to 3D Tic Tac Toe.");
+            System.out.println("Player: input coordinates as `level <space> row <space> column` where (0,0,0) is top left corner of bottom level");
+        }
+        board = new Board();
 
-        System.out.println("Welcome to 3D Tic Tac Toe.");
-
-        System.out.println("Player: input coordinates as `x <space> y <space> z`");
-        while (true) {
-            while (board.getOpenSpots().size() > 0 && !board.isGoalState()) {
-                int currentTile;
-
-                currentTile = 1;
+        while (board.getOpenSpots().size() > 0 && !board.isGoalState()) {
+            if (!ENABLE_GUI) {
                 board.turnCount++;
-                board = playerMove(board, scanner, currentTile);
-                System.out.println("Evaluation of that move: " + board.evaluationFunction(currentTile));
+                board = playerMove(board, scanner, 1);
                 if (DEBUG) {
+                    System.out.println("Evaluation of that move: " + board.evaluationFunction(1));
                     if (CONSIDER_BLOCKING) {
                         System.out.println("Blocking factor: " + board.blockingFactor(1, 2));
                     }
                     System.out.println("Total filled: " + board.DEBUG_totalFilled);
-                    System.out.println("Turn count: " + board.turnCount);
+                    if (COUNT_TURNS) {
+                        System.out.println("Turn count: " + board.turnCount);
+                    }
                 }
 
                 if (board.isGoalState()) {
-                    System.out.println(currentTile + " won!");
-                     aiEval = board.evaluationFunction(currentTile);
+                    System.out.println("Player won!");
                     break;
                 }
 
-                currentTile = 2;
-                board = aiMove(board, currentTile);
+                board = aiMove(board, 2);
                 board.turnCount++;
-                int eval = board.evaluationFunction(currentTile);
-                System.out.println("Evaluation of that move: " + eval);
                 if (DEBUG) {
+                    System.out.println("Evaluation of that move: " + board.evaluationFunction(2));
                     if (CONSIDER_BLOCKING) {
                         System.out.println("Blocking factor: " + board.blockingFactor(2, 1));
                     }
                     System.out.println("Total filled: " + board.DEBUG_totalFilled);
-                    System.out.println("Turn count: " + board.turnCount);
+                    if (COUNT_TURNS) {
+                        System.out.println("Turn count: " + board.turnCount);
+                    }
                 }
 
                 if (board.isGoalState()) {
-                    System.out.println(currentTile + " won!");
-                    aiEval = eval;
+                    System.out.println("AI won!");
                     break;
+                }
+            } else { // Using the GUI
+                if (isAITurn) {
+                    board = aiMove(board, 2);
+                    isAITurn = false;
+                    board.turnCount++;
+                    if (DEBUG) {
+                        board.print();
+                        System.out.println("Evaluation of that move: " + board.evaluationFunction(2));
+                        if (CONSIDER_BLOCKING) {
+                            System.out.println("Blocking factor: " + board.blockingFactor(2, 1));
+                        }
+                        System.out.println("Total filled: " + board.DEBUG_totalFilled);
+                        if (COUNT_TURNS) {
+                            System.out.println("Turn count: " + board.turnCount);
+                        }
+                    }
+
+                    if (board.isGoalState()) {
+                        gui.showWinMessage("AI won!");
+                        break;
+                    }
                 }
             }
             if (board.getOpenSpots().isEmpty()) {
-                System.out.println("Draw. All spaces filled.");
+                System.out.println("Tie: No spots left");
+                break;
             }
-
             if (board.isGoalState()) {
-                System.out.println("Game over.");
+                gui.showWinMessage("Player won!");
+                break;
             }
-            // Done with game at this point.
-            
         }
+        System.exit(1);
     }
 
     public static Board aiMove(Board board, int aiTile) {
         AI ai = new AI();
         Coordinate move = ai.nextMove(board, aiTile, MAX_PLY_DEPTH).getMove();
-        // testMove(board, move, aiTile);
         if (!board.isSquareBlank(move)) {
             System.out.println("Square not blank");
             return aiMove(board, aiTile);
         }
         board = board.move(move, aiTile);
-        board.print();
-        System.out.println("AI moved " + move);
-
+        if (ENABLE_GUI) {
+            gui.move(move);
+        } else {
+            board.print();
+            System.out.println("AI moved " + move);
+        }
         return board;
 
     }
 
+    // Used only for the board configuration tester
     private static Coordinate getMove(Board board, Scanner scanner, Stack<Coordinate> moves) {
         System.out.print("Move: ");
         String input = "";

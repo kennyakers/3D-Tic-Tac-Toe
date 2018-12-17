@@ -17,6 +17,7 @@ public class GUI extends JPanel {
 
     public GUI(int dimension) {
         this.frame = new JFrame("3D-Tic-Tac-Toe");
+        this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.buttons = new JButton[4][16]; // 4 levels, 16 buttons each.
         this.levels = new JPanel[4]; // 4 levels.
         this.panel = new JPanel(new GridLayout(1, 4)); // The background panel. Each panel in @levels will be in one of the 4 slots in this panel.
@@ -33,7 +34,7 @@ public class GUI extends JPanel {
             this.buttons[i] = new JButton[16];
             for (int j = 0; j < this.buttons[0].length; j++) {
                 this.buttons[i][j] = new JButton("");
-                this.buttons[i][j].addActionListener(new ButtonListener(Main.DEBUG));
+                this.buttons[i][j].addActionListener(new ButtonListener(Game.DEBUG));
                 this.buttons[i][j].putClientProperty("column", j % dimension);
                 this.buttons[i][j].putClientProperty("row", j / dimension);
                 this.buttons[i][j].putClientProperty("level", i);
@@ -56,6 +57,14 @@ public class GUI extends JPanel {
         }
     }
 
+    public void move(Coordinate move) {
+        this.buttons[move.x][(4 * move.y) + move.z].setText("2");
+    }
+
+    public void showWinMessage(String message) {
+        JOptionPane.showMessageDialog(null, message);
+    }
+
     private class ButtonListener implements ActionListener {
 
         private final boolean debug;
@@ -72,35 +81,43 @@ public class GUI extends JPanel {
             int row = (Integer) buttonClicked.getClientProperty("row");
             int level = (Integer) buttonClicked.getClientProperty("level");
 
+            buttonClicked.setText("1");
+
             if (debug) {
                 System.out.println("\tColumn: " + column);
                 System.out.println("\tRow: " + row);
                 System.out.println("\tLevel: " + level);
             }
 
-            int currentPlayer = Main.board.turn();
-            buttonClicked.setText("" + currentPlayer);
-            Board b = Main.move(column, row, level, currentPlayer);
-            if (b == null) {
-                System.out.println("Invalid move. Try another spot.");
-                return;
+            Coordinate move;
+            boolean success = false;
+            do {
+                move = new Coordinate(level, row, column);
+
+                success = Game.board.isSquareBlank(move);
+                if (!success) {
+                    System.out.println("Invalid move. Try again.");
+                }
+            } while (!success);
+            Game.board = Game.board.move(move, 1);
+            Game.board.turnCount++;
+            if (Game.DEBUG) {
+                Game.board.print();
+                System.out.println("Evaluation of that move: " + Game.board.evaluationFunction(1));
+                if (Game.CONSIDER_BLOCKING) {
+                    System.out.println("Blocking factor: " + Game.board.blockingFactor(1, 2));
+                }
+                System.out.println("Total filled: " + Game.board.DEBUG_totalFilled);
+                if (Game.COUNT_TURNS) {
+                    System.out.println("Turn count: " + Game.board.turnCount);
+                }
             }
 
-            if (debug) {
-                System.out.println("\tEvaluation Function Player 1: " + Main.board.evaluationFunction(1));
-                System.out.println("\tEvaluation Function Player 2: " + Main.board.evaluationFunction(2) + "\n");
-            }
-
-            if (Main.board.isGoalState(currentPlayer)) { // If someone has won.
-                JOptionPane.showMessageDialog(null, "Player " + currentPlayer + " Wins");
-                System.exit(1);
+            if (Game.board.isGoalState()) {
+                Game.isAITurn = false;
             } else {
-                System.out.println("Player to move: " + Main.board.turn());
-            }
-            // Since the player just made a move, disable the buttons because it is the AI's turn.
-            // They will be re-enabled after the AI makes a move.
-            if (Main.ENABLE_AI) {
-                GUI.this.setButtonsEnabled(false);
+
+                Game.isAITurn = true;
             }
         }
 

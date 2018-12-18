@@ -92,7 +92,7 @@ public class Board {
         return false;
     }
 
-    public int numPiecesInLine(Goal line, int player) {
+    private int numPiecesInLine(Goal line, int player) {
         int count = 0;
         for (Coordinate point : line.points) {
             if (this.getPlayerAt(point) == player) {
@@ -121,42 +121,40 @@ public class Board {
         return count;
     }
 
+    private int numPowerPositions(int player) {
+        int count = 0;
+        for (int i = 0; i < this.board.length; i++) {
+            for (int j = 0; j < this.board[i].length; j++) {
+                for (int k = 0; k < this.board[i][j].length; k++) {
+                    Coordinate point = new Coordinate(i, j, k);
+                    if (this.getPlayerAt(point) == player && (point.isCorner() || point.isMiddle())) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
     public int evaluationFunction(int playerID) {
         int opponentID = getNextPlayer(playerID);
         int numMyThreeInARows = 0;
         int numOpponentThreeInARows = 0;
         int numMyPowerPositions = 0;
         int numOpponentPowerPositions = 0;
+        int total = 0;
+        int numMyPiecesInLine = 0;
+        int numOpponentPiecesInLine = 0;
 
         if (TicTacToe.CONSIDER_POWER_POSITIONS) {
-            for (int i = 0; i < board.length; i++) {
-                for (int j = 0; j < board[i].length; j++) {
-                    for (int k = 0; k < board[i][j].length; k++) {
-                        Coordinate point = new Coordinate(i, j, k);
-                        if (this.getPlayerAt(point) == playerID && (point.isCorner() || point.isMiddle())) {
-                            numMyPowerPositions++;
-                        } else if (this.getPlayerAt(point) == opponentID && (point.isCorner() || point.isMiddle())) {
-                            numOpponentPowerPositions++;
-                        }
-                    }
-                }
-            }
+            numMyPowerPositions = this.numPowerPositions(playerID);
+            numOpponentPowerPositions = this.numPowerPositions(opponentID);
         }
 
-        int total = 0;
         for (Goal goalState : goalStates) {
-            int numMyPiecesInLine = 0;
-            int numOpponentPiecesInLine = 0;
+            numMyPiecesInLine += this.numPiecesInLine(goalState, playerID);
+            numOpponentThreeInARows += this.numPiecesInLine(goalState, opponentID);
             numMyThreeInARows = 0;
-            numOpponentThreeInARows = 0;
-
-            for (Coordinate point : goalState.points) {
-                if (this.getPlayerAt(point) == playerID) { // If the current player occupies this spot.
-                    numMyPiecesInLine++;
-                } else if (this.getPlayerAt(point) == opponentID) { // If the opponent occupies this spot.
-                    numOpponentPiecesInLine++;
-                }
-            }
 
             if (numMyPiecesInLine != 0 && numOpponentPiecesInLine != 0) {
                 numMyPiecesInLine = numOpponentPiecesInLine = 0;

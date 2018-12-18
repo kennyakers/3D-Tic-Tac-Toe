@@ -1,9 +1,26 @@
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class AI {
 
+    public static boolean timeDebug = TicTacToe.ENABLE_AI_TIMER && TicTacToe.ENABLE_MOVE_ORDERING;
+    private int orderTimeSum = 0;
+    private int orderTimeCount = 0;
+    private SortingAlgorithm algorithm = TicTacToe.SORTING_ALGORITHM;
+
+    public enum SortingAlgorithm {
+        MERGESORT, QUICKSORT;
+    }
+
     public UtilMove nextMove(Board board, int player, int maxDepth) {
+        orderTimeSum = 0;
+        orderTimeCount = 0;
+
+        long startTime = 0;
+        if (timeDebug) {
+            startTime = System.currentTimeMillis();
+        }
         UtilMove bestMove = new UtilMove(Integer.MIN_VALUE, null);
         ArrayList<Coordinate> moves = board.getOpenSpots();
         int alpha = Integer.MIN_VALUE;
@@ -16,6 +33,13 @@ public class AI {
                 bestMove.utility = score;
                 bestMove.move = move;
             }
+        }
+        if (timeDebug) {
+            long stopTime = System.currentTimeMillis();
+            long elapsedTime = stopTime - startTime;
+            System.out.println("Total time for move decision: " + (elapsedTime / 1000) + " seconds");
+            System.out.println("Total time on move ordering: " + (orderTimeSum) + " milliseconds (" + (orderTimeSum / 1000) + " seconds)");
+            System.out.println("Average time on move ordering: " + (orderTimeSum / (orderTimeCount)) + " milliseconds per iteration");
         }
         return bestMove;
     }
@@ -90,16 +114,73 @@ public class AI {
     }
 
     private ArrayList<Board> orderMoves(ArrayList<Board> boards, int player) {
-        boards.sort((Board first, Board second) -> {
-            if (first.evaluationFunction(player) < second.evaluationFunction(player)) {
-                return 1;
-            } else if (first.evaluationFunction(player) > second.evaluationFunction(player)) {
-                return -1;
-            } else {
-                return 0;
-            }
-        });
+        orderTimeCount++;
+        long startTime = 0;
+        if (timeDebug) {
+            startTime = System.currentTimeMillis();
+        }
+        switch (algorithm) {
+            case MERGESORT:
+                boards.sort((Board first, Board second) -> {
+                    if (first.evaluationFunction(player) < second.evaluationFunction(player)) {
+                        return 1;
+                    } else if (first.evaluationFunction(player) > second.evaluationFunction(player)) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                });
+                break;
+            case QUICKSORT:
+                Board[] boardsArr = new Board[boards.size()];
+                boardsArr = boards.toArray(boardsArr);
+                SortingAlgorithms sorter = new SortingAlgorithms();
+                sorter.quickSort(boardsArr, 0, boardsArr.length - 1, player);
+                boards = new ArrayList<Board>(Arrays.asList(boardsArr));
+                break;
+        }
+
+        if (timeDebug) {
+            long stopTime = System.currentTimeMillis();
+            long elapsedTime = stopTime - startTime;
+            System.out.println("Time for move order #" + orderTimeCount + ": " + (elapsedTime) + " milliSeconds");
+            orderTimeSum += (elapsedTime);
+        }
         return boards;
+    }
+
+    private class SortingAlgorithms {
+
+        public void quickSort(Board arr[], int begin, int end, int player) {
+            if (begin < end) {
+                int partitionIndex = partition(arr, begin, end, player);
+
+                quickSort(arr, begin, partitionIndex - 1, player);
+                quickSort(arr, partitionIndex + 1, end, player);
+            }
+        }
+
+        private int partition(Board arr[], int begin, int end, int player) {
+            Board pivot = arr[end];
+            int i = (begin - 1);
+
+            for (int j = begin; j < end; j++) {
+                if (arr[j].evaluationFunction(player) <= pivot.evaluationFunction(player)) {
+                    i++;
+
+                    Board swapTemp = arr[i];
+                    arr[i] = arr[j];
+                    arr[j] = swapTemp;
+                }
+            }
+
+            Board swapTemp = arr[i + 1];
+            arr[i + 1] = arr[end];
+            arr[end] = swapTemp;
+
+            return i + 1;
+        }
+
     }
 
     public class UtilMove {

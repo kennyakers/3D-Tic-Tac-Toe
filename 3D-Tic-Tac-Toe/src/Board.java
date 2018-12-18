@@ -197,6 +197,7 @@ public class Board {
 
         this.totalFilled = total;
 
+        //System.out.println((int) ((this.POWER_POSITION_FACTOR * numMyPowerPositions) - (this.POWER_OPPONENT_POSITION_FACTOR * numOpponentPowerPositions)) + total + (TicTacToe.TURBO_BLOCKING ? this.blockingFactor(playerID, opponentID) : 0));
         return (int) ((this.POWER_POSITION_FACTOR * numMyPowerPositions) - (this.POWER_OPPONENT_POSITION_FACTOR * numOpponentPowerPositions)) + total + (TicTacToe.TURBO_BLOCKING ? this.blockingFactor(playerID, opponentID) : 0);
 
     }

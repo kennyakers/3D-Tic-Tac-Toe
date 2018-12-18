@@ -34,7 +34,7 @@ public class GUI extends JPanel {
             this.buttons[i] = new JButton[16];
             for (int j = 0; j < this.buttons[0].length; j++) {
                 this.buttons[i][j] = new JButton("");
-                this.buttons[i][j].addActionListener(new ButtonListener(Game.DEBUG));
+                this.buttons[i][j].addActionListener(new ButtonListener(TicTacToe.DEBUG));
                 this.buttons[i][j].putClientProperty("column", j % dimension);
                 this.buttons[i][j].putClientProperty("row", j / dimension);
                 this.buttons[i][j].putClientProperty("level", i);
@@ -94,30 +94,21 @@ public class GUI extends JPanel {
             do {
                 move = new Coordinate(level, row, column);
 
-                success = Game.board.isSquareBlank(move);
+                success = TicTacToe.board.isSquareBlank(move);
                 if (!success) {
                     System.out.println("Invalid move. Try again.");
                 }
             } while (!success);
-            Game.board = Game.board.move(move, 1);
-            Game.board.turnCount++;
-            if (Game.DEBUG) {
-                Game.board.print();
-                System.out.println("Evaluation of that move: " + Game.board.evaluationFunction(1));
-                if (Game.CONSIDER_BLOCKING) {
-                    System.out.println("Blocking factor: " + Game.board.blockingFactor(1, 2));
-                }
-                System.out.println("Total filled: " + Game.board.DEBUG_totalFilled);
-                if (Game.COUNT_TURNS) {
-                    System.out.println("Turn count: " + Game.board.turnCount);
-                }
+            TicTacToe.board = TicTacToe.board.move(move, 1);
+            TicTacToe.board.turnCount++;
+            if (TicTacToe.DEBUG) {
+                TicTacToe.printDebugMsgs(1);
             }
 
-            if (Game.board.isGoalState()) {
-                Game.isAITurn = false;
+            if (TicTacToe.board.isGoalState()) {
+                TicTacToe.isAITurn = false;
             } else {
-
-                Game.isAITurn = true;
+                TicTacToe.isAITurn = true;
             }
         }
 

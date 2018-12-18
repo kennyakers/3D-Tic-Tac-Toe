@@ -32,14 +32,14 @@ public class AI {
             }
         }
 
-        if (Game.ENABLE_MOVE_ORDERING) {
+        if (TicTacToe.ENABLE_MOVE_ORDERING) {
             validBoards = orderMoves(validBoards, player);
         }
 
         int lowestMax = Integer.MAX_VALUE;
         for (Board b : validBoards) {
             int maxVal = this.max(Board.getNextPlayer(player), b, depth - 1, alpha, beta);
-            if (Game.ENABLE_AB_PRUNING) {
+            if (TicTacToe.ENABLE_AB_PRUNING) {
                 if (lowestMax <= alpha) {
                     return lowestMax;
                 }
@@ -66,14 +66,14 @@ public class AI {
             }
         }
 
-        if (Game.ENABLE_MOVE_ORDERING) {
+        if (TicTacToe.ENABLE_MOVE_ORDERING) {
             validBoards = orderMoves(validBoards, player);
         }
 
         int largestMin = Integer.MIN_VALUE;
         for (Board b : validBoards) {
             int minVal = this.min(Board.getNextPlayer(player), b, depth - 1, alpha, beta);
-            if (Game.ENABLE_AB_PRUNING) {
+            if (TicTacToe.ENABLE_AB_PRUNING) {
                 if (largestMin >= beta) {
                     return largestMin;
                 }
@@ -151,7 +151,7 @@ public class AI {
             Board tempBoard = boardState.move(move, currentPlayer);
             //System.out.println("Max: Examining the move: " + move);
             int minVal = minValue(tempBoard, moves, alpha, Integer.MAX_VALUE, currentPlayer, depth - 1).getUtility();
-            if (Game.ENABLE_AB_PRUNING) {
+            if (TicTacToe.ENABLE_AB_PRUNING) {
                 if (minVal > beta) { // Prune
                     return new UtilMove(minVal, move);
                 }
@@ -173,7 +173,7 @@ public class AI {
             Board tempBoard = boardState.move(move, currentPlayer);
             //System.out.println("Min: Examining the move: " + move);
             int maxVal = maxValue(tempBoard, moves, Integer.MIN_VALUE, beta, currentPlayer, depth - 1).getUtility();
-            if (Game.ENABLE_AB_PRUNING) {
+            if (TicTacToe.ENABLE_AB_PRUNING) {
                 if (maxVal < alpha) { // Pruning
                     return new UtilMove(maxVal, move);
                 }

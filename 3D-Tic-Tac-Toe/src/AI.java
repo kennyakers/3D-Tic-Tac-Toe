@@ -1,17 +1,11 @@
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class AI {
 
     public static boolean timeDebug = TicTacToe.ENABLE_AI_TIMER && TicTacToe.ENABLE_MOVE_ORDERING;
     private int orderTimeSum = 0;
     private int orderTimeCount = 0;
-    private SortingAlgorithm algorithm = TicTacToe.SORTING_ALGORITHM;
-
-    public enum SortingAlgorithm {
-        MERGESORT, QUICKSORT;
-    }
 
     public UtilMove nextMove(Board board, int player, int maxDepth) {
         orderTimeSum = 0;
@@ -114,38 +108,15 @@ public class AI {
     }
 
     private ArrayList<Board> orderMoves(ArrayList<Board> boards, int player) {
-        orderTimeCount++;
-        long startTime = 0;
-        if (timeDebug) {
-            startTime = System.currentTimeMillis();
-        }
-        switch (algorithm) {
-            case MERGESORT:
-                boards.sort((Board first, Board second) -> {
-                    if (first.evaluationFunction(player) < second.evaluationFunction(player)) {
-                        return 1;
-                    } else if (first.evaluationFunction(player) > second.evaluationFunction(player)) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                });
-                break;
-            case QUICKSORT:
-                Board[] boardsArr = new Board[boards.size()];
-                boardsArr = boards.toArray(boardsArr);
-                SortingAlgorithms sorter = new SortingAlgorithms();
-                sorter.quickSort(boardsArr, 0, boardsArr.length - 1, player);
-                boards = new ArrayList<Board>(Arrays.asList(boardsArr));
-                break;
-        }
-
-        if (timeDebug) {
-            long stopTime = System.currentTimeMillis();
-            long elapsedTime = stopTime - startTime;
-            System.out.println("Time for move order #" + orderTimeCount + ": " + (elapsedTime) + " milliSeconds");
-            orderTimeSum += (elapsedTime);
-        }
+        boards.sort((Board first, Board second) -> {
+            if (first.evaluationFunction(player) < second.evaluationFunction(player)) {
+                return 1;
+            } else if (first.evaluationFunction(player) > second.evaluationFunction(player)) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
         return boards;
     }
 

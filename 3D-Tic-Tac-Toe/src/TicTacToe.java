@@ -4,22 +4,6 @@ import java.util.Stack;
 
 public class TicTacToe {
 
-    /*
-        Optimal Settings:
-        private static final int MAX_PLY_DEPTH = 3;
-        private static final boolean ENABLE_GUI = true;
-        public static final boolean DEBUG = false;
-        public static final boolean PRIORITIZE_CORNER_MOVES = true;
-        public static final boolean PRIORITIZE_MULTILEVEL_MOVES = true;
-        public static final boolean TURBO_BLOCKING = false;
-        public static final boolean COUNT_TURNS = true;
-        public static final boolean ENABLE_AB_PRUNING = true;
-        public static final boolean ENABLE_MOVE_ORDERING = false;
-        public static final boolean ENABLE_AI_TIMER = false;
-        public static final boolean CONSIDER_POWER_POSITIONS = true;
-    
-        public static final AI.SortingAlgorithm SORTING_ALGORITHM = AI.SortingAlgorithm.MERGESORT
-    */
     private static final int MAX_PLY_DEPTH = 3;
     private static final boolean ENABLE_GUI = true;
     public static final boolean DEBUG = false;
@@ -28,18 +12,14 @@ public class TicTacToe {
     public static final boolean TURBO_BLOCKING = false;
     public static final boolean COUNT_TURNS = true;
     public static final boolean ENABLE_AB_PRUNING = true;
-    public static final boolean ENABLE_MOVE_ORDERING = true;
+    public static final boolean ENABLE_MOVE_ORDERING = false;
     public static final boolean ENABLE_AI_TIMER = false;
     public static final boolean CONSIDER_POWER_POSITIONS = true;
-    
-    public static final AI.SortingAlgorithm SORTING_ALGORITHM = AI.SortingAlgorithm.MERGESORT;
-    
-
     private static final boolean ENABLE_TEST_UTILITY = false;
 
     private static GUI gui;
     public static Board board;
-    public static boolean isAITurn = false;
+    public static boolean isAITurn = true;
 
     public static void main(String[] args) {
         if (ENABLE_TEST_UTILITY) {
@@ -147,7 +127,7 @@ public class TicTacToe {
         if (TURBO_BLOCKING) {
             System.out.println("Blocking factor: " + board.blockingFactor(currentPlayer, Board.getNextPlayer(currentPlayer)));
         }
-        System.out.println("Total filled: " + board.totalFilled);
+        //System.out.println("Total filled: " + board.totalFilled);
         if (COUNT_TURNS) {
             System.out.println("Turn count: " + board.turnCount);
         }

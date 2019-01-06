@@ -3,7 +3,7 @@ import java.util.ArrayList;
 
 public class AI {
 
-    public static boolean timeDebug = TicTacToe.ENABLE_AI_TIMER && TicTacToe.ENABLE_MOVE_ORDERING;
+    public static boolean timeDebug = TicTacToe.ENABLE_AI_TIMER && TicTacToe.ENABLE_MOVE_ORDERING; // For computation time metrics.
     private int orderTimeSum = 0;
     private int orderTimeCount = 0;
 
